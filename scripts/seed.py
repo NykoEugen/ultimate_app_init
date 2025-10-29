@@ -11,18 +11,99 @@ def seed() -> None:
     """Populate the database with a minimal quest storyline and catalog items."""
     session = SessionLocal()
     try:
-        item = session.execute(
-            select(InventoryItemCatalog).where(InventoryItemCatalog.name == "Кинджал Мандрівника")
-        ).scalar_one_or_none()
-        if item is None:
-            item = InventoryItemCatalog(
-                name="Кинджал Мандрівника",
-                rarity="rare",
-                cosmetic=False,
-                description="Колекційний клинок, що нагадує про перші пригоди.",
-            )
-            session.add(item)
-            session.flush()
+        catalog_seed = [
+            {
+                "name": "Плащ Мандрівника",
+                "slot": "cloak",
+                "rarity": "rare",
+                "cosmetic": True,
+                "description": "Легкий плащ, що захищає від вітру і надає впевненості.",
+                "icon": "cloak_traveler_rare",
+            },
+            {
+                "name": "Кинджал Мандрівника",
+                "slot": "weapon",
+                "rarity": "rare",
+                "cosmetic": False,
+                "description": "Колекційний клинок, що нагадує про перші пригоди.",
+                "icon": "dagger_traveler",
+            },
+            {
+                "name": "Маска Сутінків",
+                "slot": "head",
+                "rarity": "epic",
+                "cosmetic": True,
+                "description": "Тонка маска, що приховує обличчя у тіні.",
+                "icon": "mask_dusk_epic",
+            },
+            {
+                "name": "Поножі Рейнджера",
+                "slot": "legs",
+                "rarity": "common",
+                "cosmetic": False,
+                "description": "Зручні шкіряні штани з додатковими ременями.",
+                "icon": "legs_ranger_common",
+            },
+            {
+                "name": "Сапоги Тиші",
+                "slot": "feet",
+                "rarity": "rare",
+                "cosmetic": False,
+                "description": "Дозволяють рухатися безшумно навіть по гальці.",
+                "icon": "boots_silence_rare",
+            },
+            {
+                "name": "Перо Астролога",
+                "slot": "accessory",
+                "rarity": "seasonal",
+                "cosmetic": True,
+                "description": "Прикраса для волосся, що світиться нічним небом.",
+                "icon": "accessory_astrologist",
+            },
+            {
+                "name": "Наплічники Сторожа",
+                "slot": "shoulders",
+                "rarity": "common",
+                "cosmetic": False,
+                "description": "Прості, але надійні сталеві наплічники.",
+                "icon": "shoulders_guard_common",
+            },
+            {
+                "name": "Рукавиці Іскри",
+                "slot": "hands",
+                "rarity": "epic",
+                "cosmetic": False,
+                "description": "Зберігають тепло і підсилюють точність удару.",
+                "icon": "gloves_spark_epic",
+            },
+            {
+                "name": "Сяйливий Обруч",
+                "slot": "head",
+                "rarity": "seasonal",
+                "cosmetic": True,
+                "description": "Святковий обруч для зимових фестивалів.",
+                "icon": "crown_glimmer_seasonal",
+            },
+            {
+                "name": "Плаский Рюкзак Слідопита",
+                "slot": "back",
+                "rarity": "common",
+                "cosmetic": False,
+                "description": "Компактний рюкзак із безліччю прихованих кишень.",
+                "icon": "backpack_pathfinder",
+            },
+        ]
+
+        items_by_name: dict[str, InventoryItemCatalog] = {}
+        for payload in catalog_seed:
+            existing = session.execute(
+                select(InventoryItemCatalog).where(InventoryItemCatalog.name == payload["name"])
+            ).scalar_one_or_none()
+            if existing is None:
+                existing = InventoryItemCatalog(**payload)
+                session.add(existing)
+                session.flush()
+            items_by_name[payload["name"]] = existing
 
         start_node = session.execute(
             select(QuestNode).where(QuestNode.id == "village_square")
@@ -51,13 +132,15 @@ def seed() -> None:
                 is_final=True,
             )
 
+            dagger_item = items_by_name["Кинджал Мандрівника"]
+
             choice_help = QuestChoice(
                 id="help_villagers",
                 node=node_start,
                 label="Допомогти селянам",
                 next_node_id="after_help",
                 reward_xp=25,
-                reward_item_id=item.id,
+                reward_item_id=dagger_item.id,
             )
             choice_rest = QuestChoice(
                 id="keep_moving",

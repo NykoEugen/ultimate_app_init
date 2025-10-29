@@ -38,6 +38,7 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
     quest_data = _format_quest_node(quest_node)
 
     inventory_public = await build_inventory_public(db, player_id)
+    inventory_preview = _build_inventory_preview(inventory_public)
 
     return {
         "player": {
@@ -56,6 +57,7 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
         },
         "quest": quest_data,
         "inventory": inventory_public,
+        "inventory_preview": inventory_preview,
         "milestone": {
             "label": "До титулу 'Голос Ночі'",
             "current": player.level,
@@ -99,3 +101,17 @@ def _format_quest_node(node: Optional[QuestNodePublic]) -> Dict[str, Any]:
         formatted_choices.append(formatted_choice)
     quest_dict["choices"] = formatted_choices
     return quest_dict
+
+
+def _build_inventory_preview(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if not items:
+        return []
+    sorted_items = sorted(
+        items,
+        key=lambda entry: (
+            not entry.get("is_equipped", False),
+            entry.get("slot") or "",
+            entry.get("name") or "",
+        ),
+    )
+    return sorted_items[:4]

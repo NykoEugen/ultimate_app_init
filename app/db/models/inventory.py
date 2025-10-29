@@ -10,9 +10,11 @@ class InventoryItemCatalog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    slot = Column(String, nullable=False, default="misc")  # head/chest/cloak/etc
     rarity = Column(String, default="common", nullable=False)  # common/rare/epic/seasonal
     cosmetic = Column(Boolean, default=False, nullable=False) # true = скіни/стиль, false = корисний айтем
     description = Column(Text, nullable=True)
+    icon = Column(String, nullable=True)  # ідентифікатор або url іконки
 
 class InventoryItem(Base):
     """
