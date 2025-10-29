@@ -13,3 +13,13 @@ class QuestNodePublic(BaseModel):
     body: str
     is_final: bool
     choices: List[QuestChoicePublic]
+
+
+class QuestChoiceRequest(BaseModel):
+    choice_id: str
+
+
+class QuestChoiceResponse(BaseModel):
+    result_node: QuestNodePublic
+    gained_xp: int
+    gained_item: Optional[str] = None
