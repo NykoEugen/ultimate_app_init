@@ -1,0 +1,21 @@
+# Python artefacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment and local config files
+.env
+*.env
+
+# OS junk
+.DS_Store
+
+# IDE folders
+.idea/
+.vscode/
