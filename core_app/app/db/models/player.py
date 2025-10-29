@@ -19,6 +19,8 @@ class Player(Base):
     energy = Column(Integer, default=20, nullable=False)     # витрачається на дії
     max_energy = Column(Integer, default=20, nullable=False)
 
+    gold = Column(Integer, default=0, nullable=False)
+
     last_daily_claim_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -17,6 +17,7 @@ class PlayerProfile(BaseModel):
     xp: int
     energy: int
     max_energy: int
+    gold: int
 
     last_daily_claim_at: Optional[datetime]
 
@@ -24,3 +25,8 @@ class PlayerProfile(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DailyRewardClaimResponse(BaseModel):
+    profile: PlayerProfile
+    message: str
