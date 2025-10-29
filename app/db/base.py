@@ -6,6 +6,14 @@ from typing import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional dependency
+    load_dotenv = None
+
+if load_dotenv:
+    load_dotenv()
+
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ultimate_app.db")
 
