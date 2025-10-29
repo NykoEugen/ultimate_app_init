@@ -28,8 +28,10 @@ def _setup_quest_graph(session):
     catalog_item = InventoryItemCatalog(
         id=1,
         name="Кинджал Мандрівника",
+        slot="weapon",
         rarity="rare",
         cosmetic=False,
+        icon="dagger_traveler",
     )
 
     choice = QuestChoice(

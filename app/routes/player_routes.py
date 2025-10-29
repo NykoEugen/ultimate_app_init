@@ -69,9 +69,11 @@ def _build_player_profile(player: Player) -> PlayerProfile:
         InventoryItemPublic(
             id=item.id,
             name=item.catalog_item.name if item.catalog_item else "Невідомий предмет",
+            slot=item.catalog_item.slot if item.catalog_item else "misc",
             rarity=item.catalog_item.rarity if item.catalog_item else "common",
             cosmetic=item.catalog_item.cosmetic if item.catalog_item else False,
             is_equipped=item.is_equipped,
+            icon=item.catalog_item.icon if item.catalog_item else None,
         )
         for item in (player.inventory_items or [])
     ]

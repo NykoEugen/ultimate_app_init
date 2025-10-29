@@ -16,5 +16,6 @@ async def test_dashboard_returns_defaults_without_quest(async_session):
     assert data["daily"]["preview_reward"] == {"energy": 5, "xp": 15}
     assert data["quest"]["choices"] == []
     assert data["quest"]["title"] == "Мандрівка ще попереду"
+    assert data["inventory_preview"] == []
     assert data["milestone"]["current"] == data["player"]["level"]
     assert data["milestone"]["target"] == data["player"]["level"] + 2

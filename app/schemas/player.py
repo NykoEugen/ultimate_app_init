@@ -11,9 +11,11 @@ class PlayerCreateRequest(BaseModel):
 class InventoryItemPublic(BaseModel):
     id: int
     name: str
+    slot: str
     rarity: str
     cosmetic: bool
     is_equipped: bool
+    icon: Optional[str] = None
 
 class PlayerProfile(BaseModel):
     player_id: int
