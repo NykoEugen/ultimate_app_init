@@ -2,6 +2,12 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
+
+class PlayerCreateRequest(BaseModel):
+    player_id: int
+    username: Optional[str] = None
+
+
 class InventoryItemPublic(BaseModel):
     id: int
     name: str

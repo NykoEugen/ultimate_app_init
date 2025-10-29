@@ -87,7 +87,10 @@ class ProgressionService:
         now = now or datetime.now(timezone.utc)
         if player.last_daily_claim_at is None:
             return True
-        return now - player.last_daily_claim_at >= DAILY_REWARD_COOLDOWN
+        last_claim = player.last_daily_claim_at
+        if last_claim.tzinfo is None:
+            last_claim = last_claim.replace(tzinfo=timezone.utc)
+        return now - last_claim >= DAILY_REWARD_COOLDOWN
 
     def claim_daily(self, player: Player, now: Optional[datetime] = None) -> DailyRewardResult:
         now = now or datetime.now(timezone.utc)

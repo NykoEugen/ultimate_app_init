@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -8,12 +8,10 @@ from app.db.base import get_session
 from app.db.models.inventory import InventoryItem
 from app.db.models.player import Player
 from app.schemas.player import (
-    DailyRewardClaimResponse,
     InventoryItemPublic,
+    PlayerCreateRequest,
     PlayerProfile,
 )
-from app.services.progression_service import ProgressionService
-from app.utils.exceptions import DailyRewardUnavailable
 
 
 router = APIRouter(prefix="/player", tags=["player"])
@@ -25,34 +23,30 @@ def get_player_profile(player_id: int, session: Session = Depends(get_session)) 
     return _build_player_profile(player)
 
 
-@router.post("/{player_id}/claim-daily-reward", response_model=DailyRewardClaimResponse)
-def claim_daily_reward(player_id: int, session: Session = Depends(get_session)) -> DailyRewardClaimResponse:
-    player = _load_player(session, player_id)
+@router.post("/", response_model=PlayerProfile, status_code=201)
+def create_player(
+    payload: PlayerCreateRequest,
+    response: Response,
+    session: Session = Depends(get_session),
+) -> PlayerProfile:
+    player = session.get(Player, payload.player_id)
+    if player is not None:
+        response.status_code = 200
+        return _build_player_profile(player)
 
-    progression = ProgressionService(session)
-    try:
-        reward = progression.claim_daily(player)
-    except DailyRewardUnavailable as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    session.flush()
-
-    profile = _build_player_profile(player)
-
-    reward_parts = []
-    if reward.energy_gained:
-        reward_parts.append(f"+{reward.energy_gained} енергії")
-    if reward.gold_gained:
-        reward_parts.append(f"+{reward.gold_gained} золота")
-    if reward.xp_gained:
-        reward_parts.append(f"+{reward.xp_gained} XP")
-
-    details = ", ".join(reward_parts) if reward_parts else "жодних бонусів"
-    message = f"Ти відпочив біля вогнища і відчуваєш сили ({details})."
-
+    player = Player(
+        id=payload.player_id,
+        username=payload.username,
+        level=1,
+        xp=0,
+        energy=20,
+        max_energy=20,
+        gold=0,
+    )
+    session.add(player)
     session.commit()
-
-    return DailyRewardClaimResponse(profile=profile, message=message)
+    session.refresh(player)
+    return _build_player_profile(player)
 
 
 def _load_player(session: Session, player_id: int) -> Player:

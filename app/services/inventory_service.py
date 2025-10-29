@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.models.inventory import InventoryItem, InventoryItemCatalog
 from app.db.models.player import Player
@@ -38,3 +41,29 @@ class InventoryService:
             catalog_item_id=catalog_item.id,
             name=catalog_item.name,
         )
+
+
+async def build_inventory_public(session: AsyncSession, player_id: int) -> List[Dict[str, Any]]:
+    """Return a public representation of player's inventory suitable for the UI."""
+    stmt = (
+        select(InventoryItem)
+        .where(InventoryItem.owner_id == player_id)
+        .options(selectinload(InventoryItem.catalog_item))
+    )
+    result = await session.execute(stmt)
+    items = result.scalars().all()
+
+    inventory_public: List[Dict[str, Any]] = []
+    for item in items:
+        catalog_item = item.catalog_item
+        inventory_public.append(
+            {
+                "id": item.id,
+                "name": catalog_item.name if catalog_item else "Невідомий предмет",
+                "rarity": catalog_item.rarity if catalog_item else "common",
+                "cosmetic": catalog_item.cosmetic if catalog_item else False,
+                "is_equipped": item.is_equipped,
+            }
+        )
+
+    return inventory_public
