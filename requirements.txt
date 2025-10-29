@@ -4,3 +4,8 @@ sqlalchemy
 pydantic
 python-dotenv
 psycopg[binary]
+aiosqlite
+asyncpg
+greenlet
+pytest
+pytest-asyncio

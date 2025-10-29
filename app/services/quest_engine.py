@@ -27,6 +27,8 @@ class AppliedRewards:
     xp_into_current_level: int
     xp_needed_for_next_level: int
     granted_item: Optional[GrantedItem]
+    level_up: bool
+    message: str
 
 
 class QuestEngine:
@@ -99,6 +101,11 @@ class QuestEngine:
         self._session.add_all([progress, player])
         self._session.flush()
 
+        level_up = xp_result.levels_gained > 0
+        reward_message = getattr(choice, "result_message", None)
+        if not reward_message:
+            reward_message = f"Ти зробив вибір: {choice.label}."
+
         rewards = AppliedRewards(
             xp_gained=choice.reward_xp,
             levels_gained=xp_result.levels_gained,
@@ -106,9 +113,15 @@ class QuestEngine:
             xp_into_current_level=xp_result.xp_into_current_level,
             xp_needed_for_next_level=xp_result.xp_needed_for_next_level,
             granted_item=granted_item,
+            level_up=level_up,
+            message=reward_message,
         )
 
         return self._to_public_node(next_node), rewards
+
+    def get_current_node_public(self, player_id: int) -> QuestNodePublic:
+        """Public helper mirroring get_current_node for read-only access."""
+        return self.get_current_node(player_id)
 
     def _get_default_start_node(self) -> Optional[QuestNode]:
         stmt = (

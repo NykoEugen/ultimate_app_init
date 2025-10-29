@@ -15,7 +15,13 @@ if load_dotenv:
     load_dotenv()
 
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ultimate_app.db")
+def _normalize_database_url(raw_url: str) -> str:
+    if raw_url.startswith("postgresql://"):
+        return raw_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return raw_url
+
+
+DATABASE_URL = _normalize_database_url(os.getenv("DATABASE_URL", "sqlite:///./ultimate_app.db"))
 
 
 NAMING_CONVENTION = {
