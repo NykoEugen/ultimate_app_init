@@ -28,3 +28,5 @@ class Player(Base):
 
     inventory_items = relationship("InventoryItem", back_populates="owner")
     quest_progress = relationship("QuestProgress", back_populates="player", uselist=False)
+    wallet = relationship("Wallet", back_populates="player", uselist=False)
+    activity_logs = relationship("PlayerActivityLog", back_populates="player")

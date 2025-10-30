@@ -10,6 +10,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from fastapi import FastAPI
 
+from app.db import models  # noqa: F401  # ensure metadata is registered
 from app.routes import api_router
 from app.db.base import Base, engine
 

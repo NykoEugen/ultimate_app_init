@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,7 @@ class LevelUpResult:
     new_level: int
     xp_into_current_level: int
     xp_needed_for_next_level: int
+    rewards: List[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -39,10 +40,24 @@ class DailyRewardResult:
     gold_gained: int
     new_gold_total: int
     claimed_at: datetime
+    level_up_rewards: List[dict]
 
 
 class ProgressionService:
     """Encapsulates XP progression and daily reward logic for players."""
+
+    LEVEL_ENERGY_BONUS = 5
+    LEVEL_TITLES = {
+        1: "Початківець Шляху",
+        2: "Дослідник Вітрів",
+        3: "Оберігач Сутінків",
+        4: "Голос Ночі",
+        5: "Провідник Світла",
+    }
+    LEVEL_COSMETICS = {
+        2: "mask_dusk_epic",
+        4: "cloak_traveler_rare",
+    }
 
     def __init__(self, session: Session):
         self._session = session
@@ -63,15 +78,30 @@ class ProgressionService:
                 new_level=player.level,
                 xp_into_current_level=player.xp,
                 xp_needed_for_next_level=self.xp_required_for_next_level(player.level),
+                rewards=[],
             )
 
         player.xp += amount
         levels_gained = 0
+        rewards: List[dict] = []
 
         while player.xp >= self.xp_required_for_next_level(player.level):
             player.xp -= self.xp_required_for_next_level(player.level)
             player.level += 1
             levels_gained += 1
+
+            energy_before = player.energy
+            player.energy = min(player.max_energy, player.energy + self.LEVEL_ENERGY_BONUS)
+            energy_bonus = player.energy - energy_before
+
+            rewards.append(
+                {
+                    "level": player.level,
+                    "title": self.LEVEL_TITLES.get(player.level, f"Мандрівник рівня {player.level}"),
+                    "energy_bonus": energy_bonus,
+                    "cosmetic_unlock": self.LEVEL_COSMETICS.get(player.level),
+                }
+            )
 
         self._session.add(player)
 
@@ -81,6 +111,7 @@ class ProgressionService:
             new_level=player.level,
             xp_into_current_level=player.xp,
             xp_needed_for_next_level=self.xp_required_for_next_level(player.level),
+            rewards=rewards,
         )
 
     def can_claim_daily(self, player: Player, now: Optional[datetime] = None) -> bool:
@@ -121,4 +152,26 @@ class ProgressionService:
             gold_gained=DAILY_REWARD_GOLD,
             new_gold_total=new_gold_total,
             claimed_at=now,
+            level_up_rewards=xp_result.rewards,
         )
+
+    @classmethod
+    def xp_to_next_level(cls, player: Player) -> int:
+        threshold = cls.xp_required_for_next_level(player.level)
+        return max(0, threshold - player.xp)
+
+    @classmethod
+    def build_milestone(cls, player: Player) -> dict:
+        target = 5
+        if player.level <= 1:
+            current = 0
+        else:
+            current = (player.level - 1) % target
+            if current == 0 and player.level > 1:
+                current = target
+        return {
+            "label": "До титулу 'Голос Ночі'",
+            "current": current,
+            "target": target,
+            "reward_preview": "Епічний Плащ Ночі",
+        }

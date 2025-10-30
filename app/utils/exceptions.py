@@ -24,3 +24,11 @@ class QuestNodeNotFound(QuestLogicError):
 
 class InventoryItemNotFound(GameLogicError):
     """Raised when an inventory catalog item cannot be located."""
+
+
+class ShopOfferUnavailable(GameLogicError):
+    """Raised when a shop offer cannot be purchased (expired or already owned)."""
+
+
+class InsufficientFunds(GameLogicError):
+    """Raised when a wallet balance is not enough for the requested purchase."""

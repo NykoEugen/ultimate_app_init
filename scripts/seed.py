@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import select
 
 from app.db.base import SessionLocal
 from app.db.models.inventory import InventoryItemCatalog
+from app.db.models.shop import ShopOffer
 from app.db.models.quest import Quest, QuestChoice, QuestNode
 
 
@@ -152,6 +155,45 @@ def seed() -> None:
             )
 
             session.add_all([quest, node_start, node_after_help, choice_help, choice_rest])
+
+        now = datetime.now(timezone.utc)
+
+        offers_payload = [
+            {
+                "catalog_name": "Плащ Мандрівника",
+                "price_gold": 80,
+                "expires_at": now + timedelta(days=1),
+                "is_limited": True,
+            },
+            {
+                "catalog_name": "Маска Сутінків",
+                "price_gold": 120,
+                "expires_at": now + timedelta(days=2),
+                "is_limited": False,
+            },
+            {
+                "catalog_name": "Рукавиці Іскри",
+                "price_gold": 150,
+                "expires_at": None,
+                "is_limited": True,
+            },
+        ]
+
+        for payload in offers_payload:
+            item = items_by_name.get(payload["catalog_name"])
+            if not item:
+                continue
+            existing_offer = session.execute(
+                select(ShopOffer).where(ShopOffer.catalog_item_id == item.id)
+            ).scalar_one_or_none()
+            if existing_offer is None:
+                offer = ShopOffer(
+                    catalog_item_id=item.id,
+                    price_gold=payload["price_gold"],
+                    expires_at=payload["expires_at"],
+                    is_limited=payload["is_limited"],
+                )
+                session.add(offer)
 
         session.commit()
     finally:

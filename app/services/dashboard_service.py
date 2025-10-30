@@ -11,6 +11,7 @@ from app.services.inventory_service import build_inventory_public
 from app.services.player_service import create_player_if_not_exists
 from app.services.progression_service import DAILY_REWARD_COOLDOWN, ProgressionService
 from app.services.quest_engine import QuestEngine
+from app.db.models.activity import PlayerActivityLog
 from app.utils.exceptions import QuestNotConfigured
 
 DAILY_PREVIEW_REWARD = {"energy": 5, "xp": 15}
@@ -20,7 +21,7 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
     """Aggregate data from multiple services for the dashboard UI."""
     player = await create_player_if_not_exists(db, player_id)
 
-    xp_to_next_level = ProgressionService.xp_required_for_next_level(player.level)
+    xp_to_next_level = ProgressionService.xp_to_next_level(player)
 
     now = datetime.now(timezone.utc)
     progression_service = ProgressionService(cast(Session, None))  # type: ignore[arg-type]
@@ -39,6 +40,10 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
 
     inventory_public = await build_inventory_public(db, player_id)
     inventory_preview = _build_inventory_preview(inventory_public)
+    pending_actions = _build_pending_actions(player, inventory_public)
+    await _log_dashboard_visit(db, player_id)
+
+    milestone = ProgressionService.build_milestone(player)
 
     return {
         "player": {
@@ -58,11 +63,8 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
         "quest": quest_data,
         "inventory": inventory_public,
         "inventory_preview": inventory_preview,
-        "milestone": {
-            "label": "До титулу 'Голос Ночі'",
-            "current": player.level,
-            "target": player.level + 2,
-        },
+        "milestone": milestone,
+        "pending_actions": pending_actions,
     }
 
 
@@ -115,3 +117,19 @@ def _build_inventory_preview(items: List[Dict[str, Any]]) -> List[Dict[str, Any]
         ),
     )
     return sorted_items[:4]
+
+
+def _build_pending_actions(player: Any, inventory: List[Dict[str, Any]]) -> Dict[str, bool]:
+    you_have_unspent_points = player.energy >= player.max_energy
+    you_can_equip_new_item = any(not item.get("is_equipped", False) for item in inventory)
+
+    return {
+        "you_have_unspent_points": you_have_unspent_points,
+        "you_can_equip_new_item": you_can_equip_new_item,
+    }
+
+
+async def _log_dashboard_visit(session: AsyncSession, player_id: int) -> None:
+    log_entry = PlayerActivityLog(player_id=player_id, activity_type="dashboard_view")
+    session.add(log_entry)
+    await session.flush()
