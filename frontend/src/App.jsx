@@ -1,35 +1,101 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import TopNav from './components/TopNav';
+import DashboardPage from './pages/DashboardPage.jsx';
+import InventoryPage from './pages/InventoryPage.jsx';
+import ShopPage from './pages/ShopPage.jsx';
+import { usePlayerStore } from './store/usePlayerStore.js';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function PageContainer({ title, children }) {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <section className="page">
+      <h1>{title}</h1>
+      <div className="page__body">{children}</div>
+    </section>
+  );
 }
 
-export default App
+function App() {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') {
+      return 'light';
+    }
+    const stored = window.localStorage.getItem('ultimate-app-theme');
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  const playerId = usePlayerStore((state) => state.playerId);
+  const fetchDashboard = usePlayerStore((state) => state.fetchDashboard);
+
+  useEffect(() => {
+    if (Number.isFinite(playerId)) {
+      fetchDashboard();
+    }
+  }, [playerId, fetchDashboard]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
+    root.dataset.theme = theme;
+    window.localStorage.setItem('ultimate-app-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const listener = (event) => {
+      setTheme(event.matches ? 'dark' : 'light');
+    };
+
+    if (typeof window !== 'undefined') {
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      media.addEventListener('change', listener);
+      return () => media.removeEventListener('change', listener);
+    }
+
+    return undefined;
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
+  };
+
+  return (
+    <div className="app-shell">
+      <TopNav theme={theme} onToggleTheme={toggleTheme} />
+      <main className="app-content">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PageContainer title="Dashboard">
+                <DashboardPage />
+              </PageContainer>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <PageContainer title="Inventory">
+                <InventoryPage />
+              </PageContainer>
+            }
+          />
+          <Route
+            path="/shop"
+            element={
+              <PageContainer title="Shop">
+                <ShopPage />
+              </PageContainer>
+            }
+          />
+        </Routes>
+      </main>
+      <Toaster position="top-right" />
+    </div>
+  );
+}
+
+export default App;

@@ -55,6 +55,10 @@ async def list_shop_offers(session: AsyncSession, player_id: int) -> Tuple[Walle
                 "expires_at": offer.expires_at.isoformat() if offer.expires_at else None,
                 "owned": catalog_item.id in owned_item_ids if catalog_item else False,
                 "is_limited": offer.is_limited,
+                "slot": catalog_item.slot if catalog_item else "misc",
+                "cosmetic": catalog_item.cosmetic if catalog_item else False,
+                "description": catalog_item.description if catalog_item else None,
+                "icon": catalog_item.icon if catalog_item else None,
             }
         )
 
@@ -74,7 +78,7 @@ async def buy_offer(session: AsyncSession, player_id: int, offer_id: int) -> Tup
         raise ShopOfferUnavailable("Offer has expired")
 
     if wallet.gold < offer.price_gold:
-        raise InsufficientFunds("Not enough gold")
+        raise InsufficientFunds(available=wallet.gold, required=offer.price_gold)
 
     owned_stmt = select(InventoryItem).where(
         InventoryItem.owner_id == player_id,

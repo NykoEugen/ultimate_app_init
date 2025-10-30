@@ -32,3 +32,8 @@ class ShopOfferUnavailable(GameLogicError):
 
 class InsufficientFunds(GameLogicError):
     """Raised when a wallet balance is not enough for the requested purchase."""
+
+    def __init__(self, available: int, required: int) -> None:
+        self.available = available
+        self.required = required
+        super().__init__(f"Not enough gold: need {required}, have {available}")
