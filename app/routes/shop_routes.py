@@ -33,7 +33,15 @@ async def buy_shop_offer(
     try:
         wallet, granted = await buy_offer(db, player_id, payload.offer_id)
     except InsufficientFunds as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "insufficient_funds",
+                "message": str(exc),
+                "available_gold": exc.available,
+                "required_gold": exc.required,
+            },
+        ) from exc
     except ShopOfferUnavailable as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

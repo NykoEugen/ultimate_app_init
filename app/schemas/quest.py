@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from typing import List, Optional
 
 class QuestChoicePublic(BaseModel):
@@ -16,7 +16,9 @@ class QuestNodePublic(BaseModel):
 
 
 class QuestChoiceRequest(BaseModel):
-    choice_id: str
+    choice_id: str = Field(validation_alias=AliasChoices("choice_id", "choiceId"))
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class QuestChoiceResponse(BaseModel):
