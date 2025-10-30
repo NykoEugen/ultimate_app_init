@@ -17,6 +17,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
+from app.db import models  # noqa: F401
 from app.db.base import Base, get_session  # noqa: E402
 from app.main import app  # noqa: E402
 

@@ -16,4 +16,5 @@ async def get_dashboard(player_id: int, db: AsyncSession = Depends(get_db)):
     Повертає агрегований стан для головного екрану користувача.
     """
     data = await build_dashboard(db, player_id)
+    await db.commit()
     return data

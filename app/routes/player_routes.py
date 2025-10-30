@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.base import get_session
 from app.db.models.inventory import InventoryItem
 from app.db.models.player import Player
+from app.db.models.wallet import Wallet
 from app.schemas.player import (
     InventoryItemPublic,
     PlayerCreateRequest,
@@ -31,6 +32,11 @@ def create_player(
 ) -> PlayerProfile:
     player = session.get(Player, payload.player_id)
     if player is not None:
+        if player.wallet is None:
+            wallet = Wallet(player_id=player.id, gold=player.gold)
+            session.add(wallet)
+            session.commit()
+            session.refresh(player)
         response.status_code = 200
         return _build_player_profile(player)
 
@@ -46,6 +52,11 @@ def create_player(
     session.add(player)
     session.commit()
     session.refresh(player)
+
+    wallet = Wallet(player_id=player.id, gold=player.gold)
+    session.add(wallet)
+    session.commit()
+    session.refresh(player)
     return _build_player_profile(player)
 
 
@@ -56,6 +67,7 @@ def _load_player(session: Session, player_id: int) -> Player:
         .options(
             selectinload(Player.inventory_items).selectinload(InventoryItem.catalog_item),
             selectinload(Player.quest_progress),
+            selectinload(Player.wallet),
         )
     )
     player = session.execute(stmt).scalars().first()
@@ -78,6 +90,8 @@ def _build_player_profile(player: Player) -> PlayerProfile:
         for item in (player.inventory_items or [])
     ]
 
+    wallet_gold = player.wallet.gold if player.wallet else getattr(player, "gold", 0)
+
     return PlayerProfile(
         player_id=player.id,
         username=player.username,
@@ -85,7 +99,7 @@ def _build_player_profile(player: Player) -> PlayerProfile:
         xp=player.xp,
         energy=player.energy,
         max_energy=player.max_energy,
-        gold=getattr(player, "gold", 0),
+        gold=wallet_gold,
         last_daily_claim_at=player.last_daily_claim_at,
         inventory=inventory_public,
     )

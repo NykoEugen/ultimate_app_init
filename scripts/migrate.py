@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.db import models  # noqa: F401  # ensure models are registered
 from app.db.base import Base, engine
 
 
