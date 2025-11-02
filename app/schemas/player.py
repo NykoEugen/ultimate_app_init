@@ -16,6 +16,7 @@ class InventoryItemPublic(BaseModel):
     cosmetic: bool
     is_equipped: bool
     icon: Optional[str] = None
+    description: Optional[str] = None
 
 class PlayerProfile(BaseModel):
     player_id: int
