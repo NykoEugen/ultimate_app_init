@@ -12,6 +12,7 @@ from app.db.models.quest import QuestChoice, QuestNode, QuestProgress
 from app.schemas.quest import QuestChoicePublic, QuestNodePublic
 from app.services.inventory_service import GrantedItem, InventoryService
 from app.services.progression_service import ProgressionService
+from app.constants.onboarding import ONBOARDING_QUEST_ID
 from app.utils.exceptions import (
     QuestChoiceInvalid,
     QuestNodeNotFound,
@@ -97,6 +98,10 @@ class QuestEngine:
             progress.quest_id = next_node.quest_id
         else:
             next_node = self._load_node(progress.current_node_id)
+
+        if next_node.is_final and progress.quest_id == ONBOARDING_QUEST_ID:
+            player.onboarding_completed = True
+            self._session.add(player)
 
         self._session.add_all([progress, player])
         self._session.flush()

@@ -448,6 +448,10 @@ class FarmService:
         for plot in plots:
             if plot.id == plot_id:
                 return plot
+        # Fallback: accept slot_index for backward compatibility / partial data
+        for plot in plots:
+            if plot.slot_index == plot_id:
+                return plot
         raise FarmPlotLocked("Не знайдено ділянки з таким ідентифікатором.")
 
     def _plant_by_id(self, plants: Iterable[PlantType], plant_id: int) -> PlantType:
