@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.models.inventory import InventoryItem, InventoryItemCatalog
 from app.db.models.player import Player
 from app.utils.exceptions import InventoryItemNotFound
+from app.constants.player_stats import DEFAULT_BASE_STATS
 
 
 @dataclass
@@ -43,8 +44,22 @@ class InventoryService:
         )
 
 
-async def build_inventory_public(session: AsyncSession, player_id: int) -> List[Dict[str, Any]]:
+def _build_base_stats(player: Optional[Player]) -> Dict[str, int]:
+    """Return base stats dict with safe defaults."""
+    if player is None:
+        return {key: value for key, value in DEFAULT_BASE_STATS.items()}
+
+    stats: Dict[str, int] = {}
+    for key, default_value in DEFAULT_BASE_STATS.items():
+        value = getattr(player, key, None)
+        stats[key] = default_value if value is None else value
+    return stats
+
+
+async def build_inventory_public(session: AsyncSession, player_id: int) -> Dict[str, Any]:
     """Return a public representation of player's inventory suitable for the UI."""
+    player = await session.get(Player, player_id)
+
     stmt = (
         select(InventoryItem)
         .where(InventoryItem.owner_id == player_id)
@@ -69,7 +84,10 @@ async def build_inventory_public(session: AsyncSession, player_id: int) -> List[
             }
         )
 
-    return inventory_public
+    return {
+        "items": inventory_public,
+        "base_stats": _build_base_stats(player),
+    }
 
 
 async def equip_inventory_item(session: AsyncSession, player_id: int, item_id: int) -> Optional[InventoryItem]:

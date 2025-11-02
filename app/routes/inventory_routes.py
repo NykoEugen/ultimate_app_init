@@ -33,11 +33,12 @@ async def equip_item(
         raise HTTPException(status_code=404, detail="Item not found for this player")
 
     await db.commit()
-    inventory = await build_inventory_public(db, player_id)
+    inventory_state = await build_inventory_public(db, player_id)
     return {
         "status": "equipped",
         "equipped_item_id": item.id,
-        "inventory": inventory,
+        "inventory": inventory_state["items"],
+        "base_stats": inventory_state["base_stats"],
     }
 
 
@@ -53,9 +54,10 @@ async def unequip_item(
         raise HTTPException(status_code=404, detail="Item not found for this player")
 
     await db.commit()
-    inventory = await build_inventory_public(db, player_id)
+    inventory_state = await build_inventory_public(db, player_id)
     return {
         "status": "unequipped",
         "unequipped_item_id": item.id,
-        "inventory": inventory,
+        "inventory": inventory_state["items"],
+        "base_stats": inventory_state["base_stats"],
     }

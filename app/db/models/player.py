@@ -21,6 +21,11 @@ class Player(Base):
 
     gold = Column(Integer, default=0, nullable=False)
 
+    strength = Column(Integer, default=5, nullable=False)
+    agility = Column(Integer, default=5, nullable=False)
+    intelligence = Column(Integer, default=5, nullable=False)
+    vitality = Column(Integer, default=5, nullable=False)
+
     onboarding_completed = Column(Boolean, default=False, nullable=False)
 
     last_daily_claim_at = Column(DateTime(timezone=True), nullable=True)

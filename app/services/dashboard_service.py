@@ -38,9 +38,10 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
     quest_node = await _load_current_quest_node(db, player_id)
     quest_data = _format_quest_node(quest_node)
 
-    inventory_public = await build_inventory_public(db, player_id)
-    inventory_preview = _build_inventory_preview(inventory_public)
-    pending_actions = _build_pending_actions(player, inventory_public)
+    inventory_state = await build_inventory_public(db, player_id)
+    inventory_items = inventory_state.get("items", [])
+    inventory_preview = _build_inventory_preview(inventory_items)
+    pending_actions = _build_pending_actions(player, inventory_items)
     await _log_dashboard_visit(db, player_id)
 
     milestone = ProgressionService.build_milestone(player)
@@ -54,6 +55,7 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
             "xp_to_next_level": xp_to_next_level,
             "energy": player.energy,
             "max_energy": player.max_energy,
+            "base_stats": inventory_state.get("base_stats", {}),
         },
         "daily": {
             "can_claim": can_claim_daily,
@@ -61,7 +63,7 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
             "preview_reward": DAILY_PREVIEW_REWARD,
         },
         "quest": quest_data,
-        "inventory": inventory_public,
+        "inventory": inventory_state,
         "inventory_preview": inventory_preview,
         "milestone": milestone,
         "pending_actions": pending_actions,
