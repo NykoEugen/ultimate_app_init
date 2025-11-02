@@ -5,6 +5,7 @@ import TopNav from './components/TopNav';
 import DashboardPage from './pages/DashboardPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ShopPage from './pages/ShopPage.jsx';
+import FarmPage from './pages/FarmPage.jsx';
 import { usePlayerStore } from './store/usePlayerStore.js';
 
 function PageContainer({ title, children }) {
@@ -88,6 +89,14 @@ function App() {
             element={
               <PageContainer title="Shop">
                 <ShopPage />
+              </PageContainer>
+            }
+          />
+          <Route
+            path="/farm"
+            element={
+              <PageContainer title="My Farm">
+                <FarmPage />
               </PageContainer>
             }
           />

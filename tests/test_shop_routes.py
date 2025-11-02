@@ -42,9 +42,10 @@ def _create_offer(session, *, price: int = 80) -> tuple[Player, ShopOffer]:
 def test_shop_list_returns_offers(client: TestClient, session_factory):
     session = session_factory()
     player, offer = _create_offer(session)
+    player_id = player.id
     session.close()
 
-    response = client.get(f"/player/{player.id}/shop")
+    response = client.get(f"/player/{player_id}/shop")
     assert response.status_code == 200
 
     payload = response.json()
@@ -59,10 +60,11 @@ def test_shop_list_returns_offers(client: TestClient, session_factory):
 def test_shop_buy_deducts_wallet_and_grants_item(client: TestClient, session_factory):
     session = session_factory()
     player, offer = _create_offer(session, price=60)
+    player_id = player.id
     session.close()
 
     response = client.post(
-        f"/player/{player.id}/shop/buy",
+        f"/player/{player_id}/shop/buy",
         json={"offer_id": offer.id},
     )
     assert response.status_code == 200
@@ -75,5 +77,5 @@ def test_shop_buy_deducts_wallet_and_grants_item(client: TestClient, session_fac
     check_session = session_factory()
     inventory_item = check_session.get(InventoryItem, granted_id)
     assert inventory_item is not None
-    assert inventory_item.owner_id == player.id
+    assert inventory_item.owner_id == player_id
     check_session.close()

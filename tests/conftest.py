@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 from typing import AsyncIterator, Iterator
@@ -10,12 +11,14 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import Session, sessionmaker
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
+
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 
 from app.db import models  # noqa: F401
 from app.db.base import Base, get_session  # noqa: E402
@@ -24,10 +27,11 @@ from app.main import app  # noqa: E402
 
 @pytest.fixture()
 def sync_engine():
+    raw_url = os.environ.get("DATABASE_URL", "sqlite:///./test.db")
+    sync_url = raw_url.replace("sqlite+aiosqlite", "sqlite")
     engine = create_engine(
-        "sqlite://",
+        sync_url,
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
         future=True,
     )
     Base.metadata.create_all(engine)

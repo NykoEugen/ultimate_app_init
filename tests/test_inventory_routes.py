@@ -50,9 +50,10 @@ def _seed_player_with_inventory(session) -> tuple[Player, list[InventoryItem]]:
 def test_get_inventory_returns_public_data(client: TestClient, session_factory):
     session = session_factory()
     player, _ = _seed_player_with_inventory(session)
+    player_id = player.id
     session.close()
 
-    response = client.get(f"/player/{player.id}/inventory")
+    response = client.get(f"/player/{player_id}/inventory")
     assert response.status_code == 200
 
     payload = response.json()
@@ -67,10 +68,11 @@ def test_equip_inventory_item_switches_items(client: TestClient, session_factory
     session = session_factory()
     player, items = _seed_player_with_inventory(session)
     target_item_id = items[2].id  # other cloak
+    player_id = player.id
     session.close()
 
     response = client.post(
-        f"/player/{player.id}/inventory/equip",
+        f"/player/{player_id}/inventory/equip",
         json={"item_id": target_item_id},
     )
     assert response.status_code == 200

@@ -8,6 +8,7 @@ from app.routes.progression_routes import router as progression_router
 from app.routes.shop_routes import router as shop_router
 from app.routes.quest_routes import router as quest_router
 from app.routes.reward_routes import router as reward_router
+from app.routes.farm_routes import router as farm_router
 
 
 api_router = APIRouter()
@@ -19,6 +20,7 @@ api_router.include_router(reward_router)
 api_router.include_router(inventory_router)
 api_router.include_router(progression_router)
 api_router.include_router(shop_router)
+api_router.include_router(farm_router)
 
 
 __all__ = ["api_router"]

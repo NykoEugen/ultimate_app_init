@@ -3,6 +3,7 @@ import PlayerSwitcher from './PlayerSwitcher';
 
 const links = [
   { to: '/', label: 'Dashboard', end: true },
+  { to: '/farm', label: 'Farm' },
   { to: '/inventory', label: 'Inventory' },
   { to: '/shop', label: 'Shop' },
 ];
