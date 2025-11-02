@@ -48,3 +48,13 @@ export async function apiPost(path, body) {
 
   return handleResponse(response);
 }
+
+export async function apiPut(path, body) {
+  const response = await fetch(resolveUrl(path), {
+    method: 'PUT',
+    headers: jsonHeaders,
+    body: JSON.stringify(body ?? {}),
+  });
+
+  return handleResponse(response);
+}

@@ -6,6 +6,7 @@ const links = [
   { to: '/farm', label: 'Farm' },
   { to: '/inventory', label: 'Inventory' },
   { to: '/shop', label: 'Shop' },
+  { to: '/admin', label: 'Admin' },
 ];
 
 function SunIcon(props) {

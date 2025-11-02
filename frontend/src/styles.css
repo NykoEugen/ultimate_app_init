@@ -419,6 +419,285 @@ a:focus-visible {
   color: #f472b6;
 }
 
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.admin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-section h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--color-text-strong);
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-form__actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.admin-form__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.admin-input,
+.admin-select,
+.admin-textarea {
+  border-radius: 10px;
+  border: 1px solid var(--color-input-border);
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+}
+
+.admin-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.admin-checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.admin-checkbox-row input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.admin-hint {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.admin-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.admin-table__badge {
+  display: inline-flex;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border-radius: 6px;
+  background-color: rgba(56, 189, 248, 0.15);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.admin-table__empty {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.admin-table--dense th,
+.admin-table--dense td {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.admin-quest-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-quest-node {
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background-color: var(--color-surface-alt);
+}
+
+.admin-quest-node legend {
+  padding: 0 0.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.admin-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-choices__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.admin-choice--empty {
+  border-style: dashed;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.admin-choice__row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.admin-choice__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-quest {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-surface-alt);
+  transition: border-color 0.2s ease;
+}
+
+.admin-quest summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.admin-quest__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.admin-quest__summary-info {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-quest__summary .btn {
+  flex-shrink: 0;
+}
+
+.admin-quest[open] {
+  border-color: var(--color-primary);
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background-color: rgba(30, 64, 175, 0.16);
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-badge--highlight {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.admin-quest__node {
+  margin: 1rem 0;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-quest__node:last-child {
+  border-bottom: none;
+}
+
+.admin-quest__node-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
 /* Farm UI */
 .farm-page {
   display: flex;

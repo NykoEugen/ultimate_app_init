@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ShopPage from './pages/ShopPage.jsx';
 import FarmPage from './pages/FarmPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 import { usePlayerStore } from './store/usePlayerStore.js';
 import { useOnboardingStore } from './store/useOnboardingStore.js';
 import OnboardingPage from './pages/OnboardingPage.jsx';
@@ -119,6 +120,14 @@ function App() {
               element={
                 <PageContainer title="My Farm">
                   <FarmPage />
+                </PageContainer>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <PageContainer title="Admin Panel">
+                  <AdminPage />
                 </PageContainer>
               }
             />
