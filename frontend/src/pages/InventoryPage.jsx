@@ -50,6 +50,20 @@ const slotLabels = {
   misc: 'Різне',
 };
 
+const BASE_STAT_LABELS = {
+  strength: 'Сила',
+  agility: 'Спритність',
+  intelligence: 'Інтелект',
+  vitality: 'Витривалість',
+};
+
+const DEFAULT_BASE_STATS = {
+  strength: 5,
+  agility: 5,
+  intelligence: 5,
+  vitality: 5,
+};
+
 const iconForSlot = (slot) => slotIcons[slot] || '🎁';
 const labelForSlot = (slot) => slotLabels[slot] || slot;
 
@@ -67,6 +81,33 @@ const equipmentLayout = [
   { id: 'feet', label: 'Черевики', slots: ['feet', 'boots'], icon: '🥾', row: 6, column: 3 },
   { id: 'trinket', label: 'Талісман', slots: ['trinket', 'misc'], icon: '🎖️', row: 4, column: 4 },
 ];
+
+function HeroStats({ stats }) {
+  const entries = Object.keys(BASE_STAT_LABELS).map((key) => {
+    const value = stats?.[key];
+    return {
+      key,
+      label: BASE_STAT_LABELS[key],
+      value: Number.isFinite(value) ? value : DEFAULT_BASE_STATS[key],
+    };
+  });
+
+  return (
+    <section className="hero-stats" aria-label="Характеристики героя">
+      <header className="hero-stats__header">
+        <h3>Характеристики героя</h3>
+      </header>
+      <dl className="hero-stats__list">
+        {entries.map(({ key, label, value }) => (
+          <div key={key} className="hero-stats__item">
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
 
 function EquipmentSlot({
   layout,
@@ -343,6 +384,7 @@ function SlotContextMenu({ menu, onReplace, onUnequip, onClose, busy }) {
 function InventoryPage() {
   const playerId = usePlayerStore((state) => state.playerId);
   const [items, setItems] = useState([]);
+  const [baseStats, setBaseStats] = useState(DEFAULT_BASE_STATS);
   const [loading, setLoading] = useState(false);
   const [equipping, setEquipping] = useState(null);
   const [error, setError] = useState(null);
@@ -385,7 +427,8 @@ function InventoryPage() {
     setError(null);
     try {
       const data = await apiGet(`/player/${playerId}/inventory`);
-      setItems(data);
+      setItems(data?.items ?? []);
+      setBaseStats({ ...DEFAULT_BASE_STATS, ...(data?.base_stats ?? {}) });
     } catch (err) {
       const message = err?.message ?? 'Failed to load inventory';
       setError(message);
@@ -407,7 +450,8 @@ function InventoryPage() {
         const response = await apiPost(`/player/${playerId}/inventory/equip`, {
           item_id: itemId,
         });
-        setItems(response.inventory);
+        setItems(response.inventory ?? []);
+        setBaseStats({ ...DEFAULT_BASE_STATS, ...(response.base_stats ?? {}) });
         toast.success('Предмет одягнено');
       } catch (err) {
         const message = err?.message ?? 'Не вдалося одягнути предмет';
@@ -430,7 +474,8 @@ function InventoryPage() {
         const response = await apiPost(`/player/${playerId}/inventory/unequip`, {
           item_id: itemId,
         });
-        setItems(response.inventory);
+        setItems(response.inventory ?? []);
+        setBaseStats({ ...DEFAULT_BASE_STATS, ...(response.base_stats ?? {}) });
         toast.success('Предмет знято');
       } catch (err) {
         const message = err?.message ?? 'Не вдалося зняти предмет';
@@ -628,6 +673,7 @@ function InventoryPage() {
       <div className="inventory-layout">
         <div className="card card--panel equipment-card">
           <h2>Екіпірування</h2>
+          <HeroStats stats={baseStats} />
           <div className="equipment-grid">
             <div className="equipment-figure" aria-hidden="true" />
             {equipmentSlots.map(({ layout, item }) => (

@@ -9,3 +9,4 @@ asyncpg
 greenlet
 pytest
 pytest-asyncio
+alembic

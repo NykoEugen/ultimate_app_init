@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.constants.player_stats import DEFAULT_BASE_STATS
 from app.db.models.player import Player
 from app.db.models.wallet import Wallet
 
@@ -17,6 +18,7 @@ async def create_player_if_not_exists(session: AsyncSession, player_id: int) -> 
             energy=20,
             max_energy=20,
             gold=0,
+            **DEFAULT_BASE_STATS,
         )
         session.add(player)
         await session.flush()
