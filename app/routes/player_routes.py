@@ -13,6 +13,7 @@ from app.schemas.player import (
     PlayerCreateRequest,
     PlayerProfile,
 )
+from app.services.farm_service import FarmService
 
 
 router = APIRouter(prefix="/player", tags=["player"])
@@ -37,6 +38,7 @@ def create_player(
             session.add(wallet)
             session.commit()
             session.refresh(player)
+        FarmService(session).get_farm_state(player.id)
         response.status_code = 200
         return _build_player_profile(player)
 
@@ -57,6 +59,7 @@ def create_player(
     session.add(wallet)
     session.commit()
     session.refresh(player)
+    FarmService(session).get_farm_state(player.id)
     return _build_player_profile(player)
 
 

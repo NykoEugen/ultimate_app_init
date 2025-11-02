@@ -10,9 +10,10 @@ def test_get_progression_returns_summary(client: TestClient, session_factory):
     player = Player(id=51, username="Leveller", level=3, xp=40, energy=15, max_energy=20, gold=10)
     session.add(player)
     session.commit()
+    player_id = player.id
     session.close()
 
-    response = client.get(f"/player/{player.id}/progression")
+    response = client.get(f"/player/{player_id}/progression")
     assert response.status_code == 200
     payload = response.json()
 

@@ -30,3 +30,5 @@ class Player(Base):
     quest_progress = relationship("QuestProgress", back_populates="player", uselist=False)
     wallet = relationship("Wallet", back_populates="player", uselist=False)
     activity_logs = relationship("PlayerActivityLog", back_populates="player")
+    farming_stats = relationship("PlayerFarmingStats", back_populates="player", uselist=False)
+    farm_plots = relationship("FarmPlot", back_populates="owner")

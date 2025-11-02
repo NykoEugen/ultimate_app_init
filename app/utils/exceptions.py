@@ -37,3 +37,27 @@ class InsufficientFunds(GameLogicError):
         self.available = available
         self.required = required
         super().__init__(f"Not enough gold: need {required}, have {available}")
+
+
+class FarmPlotLocked(GameLogicError):
+    """Raised when attempting to use a locked plot."""
+
+
+class FarmPlotOccupied(GameLogicError):
+    """Raised when attempting to plant on an occupied plot."""
+
+
+class FarmPlotEmpty(GameLogicError):
+    """Raised when attempting to harvest an empty plot."""
+
+
+class FarmPlantLocked(GameLogicError):
+    """Raised when a plant blueprint is not available for the player."""
+
+
+class NotEnoughFarmEnergy(GameLogicError):
+    """Raised when the player lacks farming energy for an action."""
+
+
+class FarmingToolUpgradeUnavailable(GameLogicError):
+    """Raised when the farming tool cannot be upgraded further."""

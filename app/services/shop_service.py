@@ -74,7 +74,10 @@ async def buy_offer(session: AsyncSession, player_id: int, offer_id: int) -> Tup
         raise ShopOfferUnavailable("Offer not found")
 
     now = datetime.now(timezone.utc)
-    if offer.expires_at and offer.expires_at <= now:
+    expires_at = offer.expires_at
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at and expires_at <= now:
         raise ShopOfferUnavailable("Offer has expired")
 
     if wallet.gold < offer.price_gold:
