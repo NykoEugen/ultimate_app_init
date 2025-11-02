@@ -65,6 +65,7 @@ async def build_inventory_public(session: AsyncSession, player_id: int) -> List[
                 "cosmetic": catalog_item.cosmetic if catalog_item else False,
                 "is_equipped": item.is_equipped,
                 "icon": catalog_item.icon if catalog_item else None,
+                "description": catalog_item.description if catalog_item else None,
             }
         )
 
@@ -100,6 +101,24 @@ async def equip_inventory_item(session: AsyncSession, player_id: int, item_id: i
             other.is_equipped = False
 
     item.is_equipped = True
+    await session.flush()
+    await session.refresh(item)
+    return item
+
+
+async def unequip_inventory_item(session: AsyncSession, player_id: int, item_id: int) -> Optional[InventoryItem]:
+    """Unequip the specified inventory item for the player."""
+    stmt = (
+        select(InventoryItem)
+        .where(InventoryItem.id == item_id, InventoryItem.owner_id == player_id)
+        .options(selectinload(InventoryItem.catalog_item))
+    )
+    result = await session.execute(stmt)
+    item = result.scalars().first()
+    if item is None:
+        return None
+
+    item.is_equipped = False
     await session.flush()
     await session.refresh(item)
     return item

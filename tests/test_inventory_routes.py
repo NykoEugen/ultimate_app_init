@@ -49,7 +49,8 @@ def _seed_player_with_inventory(session) -> tuple[Player, list[InventoryItem]]:
 
 def test_get_inventory_returns_public_data(client: TestClient, session_factory):
     session = session_factory()
-    player, _ = _seed_player_with_inventory(session)
+    player, items = _seed_player_with_inventory(session)
+    item_description = items[0].catalog_item.description
     player_id = player.id
     session.close()
 
@@ -62,6 +63,7 @@ def test_get_inventory_returns_public_data(client: TestClient, session_factory):
     cloak = next(item for item in payload if item["slot"] == "cloak" and item["is_equipped"])
     assert cloak["name"] == "Плащ Мандрівника"
     assert cloak["icon"] == "cloak_traveler_rare"
+    assert cloak["description"] == item_description
 
 
 def test_equip_inventory_item_switches_items(client: TestClient, session_factory):
@@ -83,3 +85,23 @@ def test_equip_inventory_item_switches_items(client: TestClient, session_factory
     equipped_items = [item for item in payload["inventory"] if item["slot"] == "cloak" and item["is_equipped"]]
     assert len(equipped_items) == 1
     assert equipped_items[0]["id"] == target_item_id
+
+
+def test_unequip_inventory_item_moves_to_bag(client: TestClient, session_factory):
+    session = session_factory()
+    player, items = _seed_player_with_inventory(session)
+    equipped_item_id = items[0].id
+    player_id = player.id
+    session.close()
+
+    response = client.post(
+        f"/player/{player_id}/inventory/unequip",
+        json={"item_id": equipped_item_id},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "unequipped"
+    assert payload["unequipped_item_id"] == equipped_item_id
+
+    equipped_items = [item for item in payload["inventory"] if item["slot"] == "cloak" and item["is_equipped"]]
+    assert len(equipped_items) == 0

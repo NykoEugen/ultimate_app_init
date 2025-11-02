@@ -39,7 +39,7 @@ function parseEffects(description) {
     }
 
     if (text.startsWith('-') || /debuff|penalty|reduce|minus/i.test(text)) {
-      effects.penalties.push(text.replace(/^[\-\s]*/, '').trim());
+      effects.penalties.push(text.replace(/^[\s-]*/, '').trim());
     } else if (text.startsWith('+') || /buff|bonus|increase|plus|gain/i.test(text)) {
       effects.bonuses.push(text.replace(/^[+\s]*/, '').trim());
     } else {
@@ -214,7 +214,7 @@ function ShopPage() {
             if (parsed?.detail) {
               return String(parsed.detail);
             }
-          } catch (parseError) {
+          } catch {
             // ignore json parse errors
           }
 

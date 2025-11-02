@@ -92,6 +92,7 @@ def _build_player_profile(player: Player) -> PlayerProfile:
             cosmetic=item.catalog_item.cosmetic if item.catalog_item else False,
             is_equipped=item.is_equipped,
             icon=item.catalog_item.icon if item.catalog_item else None,
+            description=item.catalog_item.description if item.catalog_item else None,
         )
         for item in (player.inventory_items or [])
     ]
