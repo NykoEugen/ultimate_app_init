@@ -14,6 +14,7 @@ from app.schemas.player import (
     PlayerProfile,
 )
 from app.services.farm_service import FarmService
+from app.services.onboarding_service import OnboardingService
 
 
 router = APIRouter(prefix="/player", tags=["player"])
@@ -39,6 +40,7 @@ def create_player(
             session.commit()
             session.refresh(player)
         FarmService(session).get_farm_state(player.id)
+        OnboardingService(session).ensure_onboarding_content()
         response.status_code = 200
         return _build_player_profile(player)
 
@@ -60,6 +62,7 @@ def create_player(
     session.commit()
     session.refresh(player)
     FarmService(session).get_farm_state(player.id)
+    OnboardingService(session).ensure_onboarding_content()
     return _build_player_profile(player)
 
 

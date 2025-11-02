@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy import BigInteger
+from sqlalchemy import BigInteger, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -20,6 +20,8 @@ class Player(Base):
     max_energy = Column(Integer, default=20, nullable=False)
 
     gold = Column(Integer, default=0, nullable=False)
+
+    onboarding_completed = Column(Boolean, default=False, nullable=False)
 
     last_daily_claim_at = Column(DateTime(timezone=True), nullable=True)
 
