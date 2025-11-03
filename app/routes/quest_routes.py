@@ -1,5 +1,4 @@
 from __future__ import annotations
-from __future__ import annotations
 
 from typing import Any, Dict
 
@@ -8,19 +7,26 @@ from sqlalchemy.orm import Session
 
 from app.db.base import get_session
 from app.schemas.quest import QuestChoiceRequest, QuestNodePublic
+from app.services.quest_content_service import QuestContentService
 from app.services.quest_engine import QuestEngine
 from app.utils.exceptions import (
     QuestChoiceInvalid,
     QuestNodeNotFound,
     QuestNotConfigured,
 )
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/player/{player_id}/quest", tags=["quest"])
 
 
 @router.get("/current")
-def get_current_quest_node(player_id: int, session: Session = Depends(get_session)) -> Dict[str, Any]:
+def get_current_quest_node(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> Dict[str, Any]:
+    QuestContentService(session).ensure_fallen_crown_saga()
     engine = QuestEngine(session)
     try:
         node = engine.get_current_node(player_id)
@@ -36,7 +42,9 @@ def apply_quest_choice(
     player_id: int,
     payload: QuestChoiceRequest,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> Dict[str, Any]:
+    QuestContentService(session).ensure_fallen_crown_saga()
     engine = QuestEngine(session)
     try:
         result_node, rewards = engine.apply_choice(player_id, payload.choice_id)

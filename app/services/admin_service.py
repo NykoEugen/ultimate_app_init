@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Tuple
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.models.farm import PlantType
 from app.db.models.inventory import InventoryItemCatalog
-from app.db.models.quest import Quest, QuestChoice, QuestNode
+from app.db.models.quest import Quest, QuestChoice, QuestNode, QuestProgress
 from app.schemas.admin import (
     EquipmentItemCreate,
     EquipmentItemUpdate,
@@ -178,41 +178,89 @@ async def update_quest(
     quest.description = payload.description
     quest.is_repeatable = payload.is_repeatable
 
-    # Remove existing nodes and choices before inserting the new structure.
-    await session.execute(
-        delete(QuestChoice).where(
-            QuestChoice.node_id.in_(select(QuestNode.id).where(QuestNode.quest_id == quest_id))
-        )
-    )
-    await session.execute(delete(QuestNode).where(QuestNode.quest_id == quest_id))
-    await session.flush()
+    payload_nodes_map = {node.id: node for node in payload.nodes}
+    existing_nodes_map = {node.id: node for node in quest.nodes}
 
-    node_payload_map: Dict[str, Tuple[QuestNode, Iterable]] = {}
-    for node_data in payload.nodes:
+    start_node = next((node for node in payload.nodes if node.is_start), None)
+    start_node_id = start_node.id if start_node else None
+
+    nodes_to_remove = [node_id for node_id in existing_nodes_map if node_id not in payload_nodes_map]
+    if nodes_to_remove and start_node_id:
+        await session.execute(
+            update(QuestProgress)
+            .where(QuestProgress.current_node_id.in_(nodes_to_remove))
+            .values(current_node_id=start_node_id, quest_id=quest.id)
+        )
+
+    if nodes_to_remove:
+        await session.execute(delete(QuestChoice).where(QuestChoice.node_id.in_(nodes_to_remove)))
+        await session.execute(delete(QuestNode).where(QuestNode.id.in_(nodes_to_remove)))
+        await session.flush()
+
+    # Update existing nodes and sync choices
+    for node_id, node in existing_nodes_map.items():
+        node_spec = payload_nodes_map.get(node_id)
+        if node_spec is None:
+            continue
+
+        node.title = node_spec.title
+        node.body = node_spec.body
+        node.is_start = node_spec.is_start
+        node.is_final = node_spec.is_final
+
+        existing_choices = {choice.id: choice for choice in node.choices}
+        payload_choices = {choice.id: choice for choice in node_spec.choices}
+
+        # Remove choices that are no longer present
+        choices_to_remove = [choice_id for choice_id in existing_choices if choice_id not in payload_choices]
+        if choices_to_remove:
+            await session.execute(delete(QuestChoice).where(QuestChoice.id.in_(choices_to_remove)))
+
+        # Update existing choices or add new ones
+        for choice_id, choice_spec in payload_choices.items():
+            existing_choice = existing_choices.get(choice_id)
+            if existing_choice:
+                existing_choice.label = choice_spec.label
+                existing_choice.next_node_id = choice_spec.next_node_id
+                existing_choice.reward_xp = choice_spec.reward_xp
+                existing_choice.reward_item_id = choice_spec.reward_item_id
+            else:
+                session.add(
+                    QuestChoice(
+                        id=choice_spec.id,
+                        node_id=node.id,
+                        label=choice_spec.label,
+                        next_node_id=choice_spec.next_node_id,
+                        reward_xp=choice_spec.reward_xp,
+                        reward_item_id=choice_spec.reward_item_id,
+                    )
+                )
+
+    # Add new nodes that were not previously present
+    new_node_specs = [node_spec for node_id, node_spec in payload_nodes_map.items() if node_id not in existing_nodes_map]
+    for node_spec in new_node_specs:
         node = QuestNode(
-            id=node_data.id,
+            id=node_spec.id,
             quest_id=quest.id,
-            title=node_data.title,
-            body=node_data.body,
-            is_start=node_data.is_start,
-            is_final=node_data.is_final,
+            title=node_spec.title,
+            body=node_spec.body,
+            is_start=node_spec.is_start,
+            is_final=node_spec.is_final,
         )
         session.add(node)
-        node_payload_map[node.id] = (node, node_data.choices)
+        await session.flush()
 
-    await session.flush()
-
-    for node_id, (node, choices_data) in node_payload_map.items():
-        for choice_data in choices_data:
-            choice = QuestChoice(
-                id=choice_data.id,
-                node_id=node.id,
-                label=choice_data.label,
-                next_node_id=choice_data.next_node_id,
-                reward_xp=choice_data.reward_xp,
-                reward_item_id=choice_data.reward_item_id,
+        for choice_spec in node_spec.choices:
+            session.add(
+                QuestChoice(
+                    id=choice_spec.id,
+                    node_id=node.id,
+                    label=choice_spec.label,
+                    next_node_id=choice_spec.next_node_id,
+                    reward_xp=choice_spec.reward_xp,
+                    reward_item_id=choice_spec.reward_item_id,
+                )
             )
-            session.add(choice)
 
     await session.flush()
 

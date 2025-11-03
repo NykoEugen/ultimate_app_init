@@ -1,13 +1,4 @@
 import { NavLink } from 'react-router-dom';
-import PlayerSwitcher from './PlayerSwitcher';
-
-const links = [
-  { to: '/', label: 'Dashboard', end: true },
-  { to: '/farm', label: 'Farm' },
-  { to: '/inventory', label: 'Inventory' },
-  { to: '/shop', label: 'Shop' },
-  { to: '/admin', label: 'Admin' },
-];
 
 function SunIcon(props) {
   return (
@@ -47,7 +38,36 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
-function TopNav({ theme = 'light', onToggleTheme }) {
+function UserBadge({ player, user, onLogout }) {
+  const label = player?.username || user?.login || 'Гість';
+  const playerId = player?.player_id ?? user?.player_id;
+
+  return (
+    <div className="top-nav__user">
+      <div className="top-nav__user-info">
+        <span className="top-nav__user-name">{label}</span>
+        {Number.isFinite(playerId) ? <span className="top-nav__user-meta">ID: {playerId}</span> : null}
+        {user?.is_admin ? <span className="top-nav__user-role">Admin</span> : null}
+      </div>
+      <button type="button" className="btn btn--ghost" onClick={onLogout}>
+        Вийти
+      </button>
+    </div>
+  );
+}
+
+function TopNav({ theme = 'light', onToggleTheme, player, user, onLogout }) {
+  const links = [
+    { to: '/', label: 'Dashboard', end: true },
+    { to: '/farm', label: 'Farm' },
+    { to: '/inventory', label: 'Inventory' },
+    { to: '/shop', label: 'Shop' },
+  ];
+
+  if (user?.is_admin) {
+    links.push({ to: '/admin', label: 'Admin' });
+  }
+
   return (
     <header className="top-nav">
       <div className="top-nav__brand">Ultimate App</div>
@@ -60,7 +80,7 @@ function TopNav({ theme = 'light', onToggleTheme }) {
           ))}
         </nav>
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-        <PlayerSwitcher />
+        <UserBadge player={player} user={user} onLogout={onLogout} />
       </div>
     </header>
   );

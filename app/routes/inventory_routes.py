@@ -10,13 +10,18 @@ from app.services.inventory_service import (
     equip_inventory_item,
     unequip_inventory_item,
 )
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/player/{player_id}/inventory", tags=["inventory"])
 
 
 @router.get("")
-async def get_inventory(player_id: int, db: AsyncSession = Depends(get_db)):
+async def get_inventory(
+    player_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user=Depends(require_player_access),
+):
     """Return full inventory for the given player."""
     return await build_inventory_public(db, player_id)
 
@@ -26,6 +31,7 @@ async def equip_item(
     player_id: int,
     payload: InventoryEquipRequest,
     db: AsyncSession = Depends(get_db),
+    _user=Depends(require_player_access),
 ):
     """Equip the specified item and return updated inventory state."""
     item = await equip_inventory_item(db, player_id, payload.item_id)
@@ -47,6 +53,7 @@ async def unequip_item(
     player_id: int,
     payload: InventoryUnequipRequest,
     db: AsyncSession = Depends(get_db),
+    _user=Depends(require_player_access),
 ):
     """Unequip the specified item and return updated inventory state."""
     item = await unequip_inventory_item(db, player_id, payload.item_id)

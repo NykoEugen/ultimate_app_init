@@ -13,13 +13,18 @@ from app.schemas.farm import (
 )
 from app.services.farm_service import FarmService
 from app.utils.exceptions import GameLogicError
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/farm", tags=["farm"])
 
 
 @router.get("/{player_id}", response_model=FarmState)
-def get_farm_state(player_id: int, session: Session = Depends(get_session)) -> FarmState:
+def get_farm_state(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> FarmState:
     service = FarmService(session)
     state = service.get_farm_state(player_id)
     public = service.build_public_state(state)
@@ -31,6 +36,7 @@ def plant_crop(
     player_id: int,
     payload: PlantCropRequest,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> FarmActionResponse:
     service = FarmService(session)
     try:
@@ -47,6 +53,7 @@ def harvest_crop(
     player_id: int,
     payload: HarvestCropRequest,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> FarmActionResponse:
     service = FarmService(session)
     try:
@@ -63,6 +70,7 @@ def unlock_plot(
     player_id: int,
     plot_id: int,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> FarmActionResponse:
     service = FarmService(session)
     try:
@@ -78,6 +86,7 @@ def unlock_plot(
 def upgrade_tool(
     player_id: int,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> FarmActionResponse:
     service = FarmService(session)
     try:
@@ -94,6 +103,7 @@ def refill_farm_energy(
     player_id: int,
     payload: RefillFarmEnergyRequest,
     session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
 ) -> FarmActionResponse:
     service = FarmService(session)
     try:

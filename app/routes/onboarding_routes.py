@@ -7,13 +7,18 @@ from app.db.base import get_session
 from app.schemas.onboarding import OnboardingState
 from app.services.onboarding_service import OnboardingService
 from app.utils.exceptions import QuestNotConfigured
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/player/{player_id}/onboarding", tags=["onboarding"])
 
 
 @router.get("", response_model=OnboardingState)
-def get_onboarding_state(player_id: int, session: Session = Depends(get_session)) -> OnboardingState:
+def get_onboarding_state(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> OnboardingState:
     service = OnboardingService(session)
     try:
         return service.get_state(player_id)
@@ -24,7 +29,11 @@ def get_onboarding_state(player_id: int, session: Session = Depends(get_session)
 
 
 @router.post("/complete", response_model=OnboardingState)
-def complete_onboarding(player_id: int, session: Session = Depends(get_session)) -> OnboardingState:
+def complete_onboarding(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> OnboardingState:
     service = OnboardingService(session)
     try:
         return service.mark_completed(player_id)

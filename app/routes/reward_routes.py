@@ -10,13 +10,18 @@ from app.db.base import get_session
 from app.db.models.player import Player
 from app.services.progression_service import DAILY_REWARD_COOLDOWN, ProgressionService
 from app.utils.exceptions import DailyRewardUnavailable
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/player", tags=["reward"])
 
 
 @router.post("/{player_id}/claim-daily-reward")
-def claim_daily_reward(player_id: int, session: Session = Depends(get_session)) -> Dict[str, object]:
+def claim_daily_reward(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> Dict[str, object]:
     player = session.get(Player, player_id)
     if player is None:
         raise HTTPException(status_code=404, detail="Player not found")

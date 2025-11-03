@@ -6,11 +6,13 @@ from typing import Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.content.fallen_crown import FALLEN_CROWN_START_NODE_ID
 from app.db.models.inventory import InventoryItemCatalog
 from app.db.models.player import Player
 from app.db.models.quest import QuestChoice, QuestNode, QuestProgress
 from app.schemas.quest import QuestChoicePublic, QuestNodePublic
 from app.services.inventory_service import GrantedItem, InventoryService
+from app.services.quest_content_service import QuestContentService
 from app.services.progression_service import ProgressionService
 from app.constants.onboarding import ONBOARDING_QUEST_ID
 from app.utils.exceptions import (
@@ -101,7 +103,11 @@ class QuestEngine:
 
         if next_node.is_final and progress.quest_id == ONBOARDING_QUEST_ID:
             player.onboarding_completed = True
-            self._session.add(player)
+            saga_service = QuestContentService(self._session)
+            saga_start_node = saga_service.ensure_fallen_crown_start_node()
+            progress.current_node_id = saga_start_node.id
+            progress.quest_id = saga_start_node.quest_id
+            next_node = self._load_node(FALLEN_CROWN_START_NODE_ID)
 
         self._session.add_all([progress, player])
         self._session.flush()

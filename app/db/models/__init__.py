@@ -10,6 +10,7 @@ from app.db.models.farm import (
     PlantedCrop,
     PlayerFarmingStats,
 )
+from app.db.models.user import UserAccount, SessionToken
 
 __all__ = [
     "PlayerActivityLog",
@@ -26,4 +27,6 @@ __all__ = [
     "PlantType",
     "PlantedCrop",
     "PlayerFarmingStats",
+    "UserAccount",
+    "SessionToken",
 ]
