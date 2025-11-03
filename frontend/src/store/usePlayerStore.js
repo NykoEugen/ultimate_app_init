@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { apiGet, apiPost } from '../api/http.js';
 
 const initialState = {
-  playerId: 1,
+  playerId: null,
+  profile: null,
   dashboard: null,
   loadingDashboard: false,
   error: null,
@@ -10,14 +11,31 @@ const initialState = {
 
 export const usePlayerStore = create((set, get) => ({
   ...initialState,
+
+  applyAuthSession: (profile) =>
+    set(() => ({
+      playerId: profile?.player_id ?? null,
+      profile: profile ?? null,
+      dashboard: null,
+      error: null,
+    })),
+
   setPlayerId: (playerId) =>
     set(() => ({
       playerId: Number.isFinite(playerId) ? Number(playerId) : null,
     })),
+
+  setProfile: (profile) =>
+    set(() => ({
+      profile: profile ?? null,
+    })),
+
+  clear: () => set({ ...initialState }),
+
   fetchDashboard: async () => {
     const { playerId } = get();
     if (!Number.isFinite(playerId)) {
-      set({ error: 'Player ID is not set.', dashboard: null });
+      set({ error: 'Ідентифікатор героя не заданий.', dashboard: null });
       return;
     }
 
@@ -29,14 +47,15 @@ export const usePlayerStore = create((set, get) => ({
     } catch (error) {
       set({
         loadingDashboard: false,
-        error: error?.message ?? 'Failed to load dashboard.',
+        error: error?.message ?? 'Не вдалося завантажити дашборд.',
       });
     }
   },
+
   claimDaily: async () => {
     const { playerId, fetchDashboard } = get();
     if (!Number.isFinite(playerId)) {
-      set({ error: 'Player ID is not set.' });
+      set({ error: 'Ідентифікатор героя не заданий.' });
       return;
     }
 
@@ -48,14 +67,15 @@ export const usePlayerStore = create((set, get) => ({
     } catch (error) {
       set({
         loadingDashboard: false,
-        error: error?.message ?? 'Failed to claim daily reward.',
+        error: error?.message ?? 'Не вдалося отримати щоденну нагороду.',
       });
     }
   },
+
   choose: async (choiceId) => {
     const { playerId, fetchDashboard } = get();
     if (!Number.isFinite(playerId)) {
-      set({ error: 'Player ID is not set.' });
+      set({ error: 'Ідентифікатор героя не заданий.' });
       return;
     }
 
@@ -67,7 +87,7 @@ export const usePlayerStore = create((set, get) => ({
     } catch (error) {
       set({
         loadingDashboard: false,
-        error: error?.message ?? 'Failed to submit choice.',
+        error: error?.message ?? 'Не вдалося обробити вибір.',
       });
     }
   },

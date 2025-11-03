@@ -10,6 +10,7 @@ from app.schemas.quest import QuestNodePublic
 from app.services.inventory_service import build_inventory_public
 from app.services.player_service import create_player_if_not_exists
 from app.services.progression_service import DAILY_REWARD_COOLDOWN, ProgressionService
+from app.services.quest_content_service import QuestContentService
 from app.services.quest_engine import QuestEngine
 from app.db.models.activity import PlayerActivityLog
 from app.utils.exceptions import QuestNotConfigured
@@ -35,7 +36,9 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
         cooldown_ends = last_claim + DAILY_REWARD_COOLDOWN
         cooldown_seconds_left = max(0, int((cooldown_ends - now).total_seconds()))
 
-    quest_node = await _load_current_quest_node(db, player_id)
+    quest_node: Optional[QuestNodePublic] = None
+    if player.onboarding_completed:
+        quest_node = await _load_current_quest_node(db, player_id, seed_saga=True)
     quest_data = _format_quest_node(quest_node)
 
     inventory_state = await build_inventory_public(db, player_id)
@@ -70,8 +73,15 @@ async def build_dashboard(db: AsyncSession, player_id: int) -> Dict[str, Any]:
     }
 
 
-async def _load_current_quest_node(db: AsyncSession, player_id: int) -> Optional[QuestNodePublic]:
+async def _load_current_quest_node(
+    db: AsyncSession,
+    player_id: int,
+    *,
+    seed_saga: bool = False,
+) -> Optional[QuestNodePublic]:
     def _sync_fetch(session: Session) -> Optional[QuestNodePublic]:
+        if seed_saga:
+            QuestContentService(session).ensure_fallen_crown_saga()
         engine = QuestEngine(session)
         try:
             node = engine.get_current_node_public(player_id)

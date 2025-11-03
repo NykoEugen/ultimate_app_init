@@ -20,9 +20,16 @@ if str(ROOT_DIR) not in sys.path:
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 
+from types import SimpleNamespace
+
 from app.db import models  # noqa: F401
 from app.db.base import Base, get_session  # noqa: E402
 from app.main import app  # noqa: E402
+from app.auth.dependencies import (
+    get_current_user,
+    require_admin,
+    require_player_access,
+)
 
 
 @pytest.fixture()
@@ -59,6 +66,8 @@ def db_session(session_factory) -> Iterator[Session]:
 
 @pytest.fixture()
 def client(session_factory) -> Iterator[TestClient]:
+    fake_user = SimpleNamespace(is_admin=True, player_id=None)
+
     def override_get_session():
         session = session_factory()
         try:
@@ -67,7 +76,19 @@ def client(session_factory) -> Iterator[TestClient]:
         finally:
             session.close()
 
+    def override_get_current_user():
+        return fake_user
+
+    def override_require_player_access(player_id: int | None = None):
+        return fake_user
+
+    def override_require_admin():
+        return fake_user
+
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[require_player_access] = override_require_player_access
+    app.dependency_overrides[require_admin] = override_require_admin
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()

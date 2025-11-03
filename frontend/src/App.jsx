@@ -7,9 +7,11 @@ import InventoryPage from './pages/InventoryPage.jsx';
 import ShopPage from './pages/ShopPage.jsx';
 import FarmPage from './pages/FarmPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import StartPage from './pages/StartPage.jsx';
+import OnboardingPage from './pages/OnboardingPage.jsx';
 import { usePlayerStore } from './store/usePlayerStore.js';
 import { useOnboardingStore } from './store/useOnboardingStore.js';
-import OnboardingPage from './pages/OnboardingPage.jsx';
+import { useAuthStore } from './store/useAuthStore.js';
 
 function PageContainer({ title, children }) {
   return (
@@ -34,12 +36,22 @@ function App() {
 
   const playerId = usePlayerStore((state) => state.playerId);
   const fetchDashboard = usePlayerStore((state) => state.fetchDashboard);
+  const playerProfile = usePlayerStore((state) => state.profile);
 
   const onboardingData = useOnboardingStore((state) => state.data);
   const onboardingLoading = useOnboardingStore((state) => state.loading);
   const onboardingError = useOnboardingStore((state) => state.error);
   const fetchOnboarding = useOnboardingStore((state) => state.fetch);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
+
+  const hydrateAuth = useAuthStore((state) => state.hydrate);
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    hydrateAuth();
+  }, [hydrateAuth]);
 
   useEffect(() => {
     if (Number.isFinite(playerId)) {
@@ -79,9 +91,23 @@ function App() {
     setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
   };
 
+  const isAuthenticated = Boolean(token && user);
+  const isAdmin = Boolean(user?.is_admin);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="app-shell app-shell--start">
+        <main className="app-content">
+          <StartPage />
+        </main>
+        <Toaster position="top-right" />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
-      <TopNav theme={theme} onToggleTheme={toggleTheme} />
+      <TopNav theme={theme} onToggleTheme={toggleTheme} player={playerProfile} user={user} onLogout={logout} />
       <main className="app-content">
         {Number.isFinite(playerId) && onboardingData && !onboardingData.completed ? (
           <OnboardingPage />
@@ -127,7 +153,7 @@ function App() {
               path="/admin"
               element={
                 <PageContainer title="Admin Panel">
-                  <AdminPage />
+                  {isAdmin ? <AdminPage /> : <p>Доступ дозволено лише адміністраторам.</p>}
                 </PageContainer>
               }
             />

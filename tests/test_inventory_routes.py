@@ -58,9 +58,11 @@ def test_get_inventory_returns_public_data(client: TestClient, session_factory):
     assert response.status_code == 200
 
     payload = response.json()
-    assert isinstance(payload, list)
-    assert len(payload) == 3
-    cloak = next(item for item in payload if item["slot"] == "cloak" and item["is_equipped"])
+    assert isinstance(payload, dict)
+    assert "items" in payload
+    assert "base_stats" in payload
+    assert len(payload["items"]) == 3
+    cloak = next(item for item in payload["items"] if item["slot"] == "cloak" and item["is_equipped"])
     assert cloak["name"] == "Плащ Мандрівника"
     assert cloak["icon"] == "cloak_traveler_rare"
     assert cloak["description"] == item_description

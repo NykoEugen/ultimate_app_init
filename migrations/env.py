@@ -6,6 +6,13 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
 from app.db import models  # noqa: F401  ensure models import
 from app.db.base import Base, DATABASE_URL, _normalize_database_url
 

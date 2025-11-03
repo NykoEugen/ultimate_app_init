@@ -4,6 +4,24 @@ const jsonHeaders = {
   'Content-Type': 'application/json',
 };
 
+let authToken = null;
+
+export function setAuthToken(token) {
+  authToken = token ? String(token) : null;
+}
+
+export function getAuthToken() {
+  return authToken;
+}
+
+function buildHeaders() {
+  const headers = { ...jsonHeaders };
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+  return headers;
+}
+
 async function handleResponse(response) {
   if (!response.ok) {
     const error = new Error(`Request failed with status ${response.status}`);
@@ -33,7 +51,7 @@ const resolveUrl = (path) => {
 export async function apiGet(path) {
   const response = await fetch(resolveUrl(path), {
     method: 'GET',
-    headers: jsonHeaders,
+    headers: buildHeaders(),
   });
 
   return handleResponse(response);
@@ -42,7 +60,7 @@ export async function apiGet(path) {
 export async function apiPost(path, body) {
   const response = await fetch(resolveUrl(path), {
     method: 'POST',
-    headers: jsonHeaders,
+    headers: buildHeaders(),
     body: JSON.stringify(body ?? {}),
   });
 
@@ -52,7 +70,7 @@ export async function apiPost(path, body) {
 export async function apiPut(path, body) {
   const response = await fetch(resolveUrl(path), {
     method: 'PUT',
-    headers: jsonHeaders,
+    headers: buildHeaders(),
     body: JSON.stringify(body ?? {}),
   });
 

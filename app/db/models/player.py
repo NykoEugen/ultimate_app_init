@@ -5,10 +5,11 @@ from sqlalchemy.sql import func
 
 from app.db.base import Base
 
+
 class Player(Base):
     __tablename__ = "players"
 
-    id = Column(BigInteger, primary_key=True, index=True)  
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     # Ми можемо прямо використовувати telegram_user_id як id, щоб не мучитись з мапінгом
 
     username = Column(String, nullable=True)  # видно в рейтингах
@@ -39,3 +40,4 @@ class Player(Base):
     activity_logs = relationship("PlayerActivityLog", back_populates="player")
     farming_stats = relationship("PlayerFarmingStats", back_populates="player", uselist=False)
     farm_plots = relationship("FarmPlot", back_populates="owner")
+    user_account = relationship("UserAccount", back_populates="player", uselist=False)

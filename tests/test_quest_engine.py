@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from app.content.fallen_crown import FALLEN_CROWN_ACT_I_ID, FALLEN_CROWN_START_NODE_ID
+from app.constants.onboarding import ONBOARDING_QUEST_ID
 from app.db.models.inventory import InventoryItemCatalog
 from app.db.models.player import Player
 from app.db.models.quest import Quest, QuestChoice, QuestNode, QuestProgress
@@ -70,3 +72,69 @@ def test_apply_choice_returns_rewards_and_next_node(db_session):
     progress = db_session.query(QuestProgress).filter_by(player_id=player.id).first()
     assert progress is not None
     assert progress.current_node_id == "after_help"
+
+
+def _setup_onboarding_quest(session):
+    quest = Quest(
+        id=ONBOARDING_QUEST_ID,
+        title="Пробудження фермера",
+        description="Навчальний квест",
+        is_repeatable=False,
+    )
+    intro_node = QuestNode(
+        id="onboarding_test_intro",
+        quest=quest,
+        title="Початок",
+        body="Перший крок.",
+        is_start=True,
+        is_final=False,
+    )
+    finish_node = QuestNode(
+        id="onboarding_test_finish",
+        quest=quest,
+        title="Завершення",
+        body="Готовий до пригод.",
+        is_start=False,
+        is_final=True,
+    )
+    finish_choice = QuestChoice(
+        id="onboarding_test_finish_choice",
+        node=intro_node,
+        label="Завершити навчання",
+        next_node_id="onboarding_test_finish",
+        reward_xp=10,
+    )
+    session.add_all([quest, intro_node, finish_node, finish_choice])
+
+
+def test_onboarding_completion_advances_to_fallen_crown(db_session):
+    player = Player(
+        id=25,
+        username="Learner",
+        level=1,
+        xp=0,
+        energy=10,
+        max_energy=20,
+        gold=0,
+        onboarding_completed=False,
+    )
+    db_session.add(player)
+    _setup_onboarding_quest(db_session)
+    db_session.commit()
+
+    engine = QuestEngine(db_session)
+
+    current_node = engine.get_current_node(player.id)
+    assert current_node.node_id == "onboarding_test_intro"
+
+    next_node, _ = engine.apply_choice(player.id, "onboarding_test_finish_choice")
+    assert next_node.node_id == FALLEN_CROWN_START_NODE_ID
+
+    progress = db_session.get(QuestProgress, player.id)
+    assert progress is not None
+    assert progress.current_node_id == FALLEN_CROWN_START_NODE_ID
+    assert progress.quest_id == FALLEN_CROWN_ACT_I_ID
+
+    updated_player = db_session.get(Player, player.id)
+    assert updated_player is not None
+    assert updated_player.onboarding_completed is True

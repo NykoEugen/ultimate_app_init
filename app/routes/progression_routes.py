@@ -6,13 +6,18 @@ from sqlalchemy.orm import Session
 from app.db.base import get_session
 from app.db.models.player import Player
 from app.services.progression_service import ProgressionService
+from app.auth.dependencies import require_player_access
 
 
 router = APIRouter(prefix="/player", tags=["progression"])
 
 
 @router.get("/{player_id}/progression")
-def get_progression(player_id: int, session: Session = Depends(get_session)) -> dict:
+def get_progression(
+    player_id: int,
+    session: Session = Depends(get_session),
+    _user=Depends(require_player_access),
+) -> dict:
     player = session.get(Player, player_id)
     if player is None:
         raise HTTPException(status_code=404, detail="Player not found")
